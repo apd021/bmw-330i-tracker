@@ -106,6 +106,43 @@ dialog input,dialog select{width:100%;padding:8px 10px;border:1px solid var(--bo
 dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
 .hint{font-size:12px;color:var(--text-muted);margin-top:4px}
 .empty{padding:40px;text-align:center;color:var(--text-muted)}
+
+.an-btn{border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);border-radius:8px;padding:5px 10px;cursor:pointer;font-weight:600;font-size:13px;margin-right:4px}
+.an-btn:hover{filter:brightness(1.08)}
+#analysis{width:min(960px,96vw);max-height:92vh;padding:0;overflow:hidden}
+#analysis .an-wrap{max-height:92vh;overflow:auto;padding:22px 26px}
+.an-head{display:flex;gap:18px;align-items:flex-start;justify-content:space-between}
+.an-head h2{margin:0 0 4px;font-size:19px;line-height:1.3}
+.an-close{border:0;background:var(--surface-2);border-radius:50%;width:34px;height:34px;cursor:pointer;font-size:16px;flex:none;color:var(--text-secondary)}
+.an-score{text-align:center;flex:none;min-width:110px}
+.an-score .big{font-size:40px;font-weight:750;line-height:1;font-variant-numeric:tabular-nums}
+.an-score .big small{font-size:16px;color:var(--text-muted);font-weight:500}
+.verdict{display:inline-block;margin-top:6px;padding:4px 10px;border-radius:8px;font-weight:650;font-size:13px}
+.an-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+@media (max-width:760px){.an-grid{grid-template-columns:1fr}}
+.an-box{background:var(--surface-2);border-radius:12px;padding:12px 14px}
+.an-box h4{margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-secondary)}
+.an-box ul{margin:0;padding-left:18px}.an-box li{margin:3px 0}
+.an-full{grid-column:1/-1}
+.meter{display:grid;grid-template-columns:120px 1fr 34px;gap:8px;align-items:center;margin:6px 0;font-size:13px}
+.meter .track{height:8px;border-radius:4px;background:var(--border);overflow:hidden}
+.meter .fill{height:100%;border-radius:4px;background:var(--accent)}
+.meter b{text-align:right;font-variant-numeric:tabular-nums}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:13px}
+.kv span:nth-child(odd){color:var(--text-secondary)}
+.kv .good{color:var(--good)}.kv .bad{color:var(--bad)}
+.flags{background:var(--bad-bg);color:var(--bad)}
+.flags h4{color:var(--bad)}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip-ok,.chip-no{font-size:12px;padding:3px 8px;border-radius:7px}
+.chip-ok{background:var(--good-bg);color:var(--good)}
+.chip-no{background:var(--surface-1);color:var(--text-muted);border:1px dashed var(--border)}
+details.more{margin-top:8px;font-size:13px}details.more summary{cursor:pointer;color:var(--accent)}
+.eqcat{margin:6px 0}.eqcat b{display:block;font-size:12px;color:var(--text-secondary)}
+.desc{white-space:pre-wrap;font-size:13px;color:var(--text-secondary);max-height:320px;overflow:auto;margin-top:6px}
+.ai{line-height:1.55}.ai h3{font-size:15px;margin:14px 0 4px}.ai h3:first-child{margin-top:0}.ai ul{padding-left:20px;margin:4px 0}
+.an-loading{padding:60px;text-align:center;color:var(--text-muted)}
+.checklist li{list-style:none;margin-left:-18px}.checklist li::before{content:"☐ ";color:var(--accent)}
 </style>
 </head>
 <body>
@@ -175,6 +212,8 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
 
 <div class="tip" id="tip"></div>
 
+<dialog id="analysis" aria-label="Pełna analiza ogłoszenia"><div class="an-wrap" id="anBody"></div></dialog>
+
 <dialog id="settings">
   <form method="dialog" id="settingsForm">
     <h3 style="margin:0">Ustawienia</h3>
@@ -242,6 +281,12 @@ async function staticApi(path, body) {
     if (body.mark) m[body.id] = body.mark; else delete m[body.id];
     localStorage.setItem('bmw330i-marks', JSON.stringify(m));
     return {ok: true};
+  }
+  if (path.startsWith('/api/analysis')) {
+    const id = decodeURIComponent(path.split('id=')[1] || '');
+    const r = await fetch('analysis/' + encodeURIComponent(id) + '.json', {cache: 'no-cache'});
+    if (!r.ok) throw new Error('Analiza tego ogłoszenia pojawi się po najbliższym codziennym pobraniu.');
+    return r.json();
   }
   if (path === '/api/status') return {running: false, message: '', last_error: null};
   return {};
@@ -318,6 +363,7 @@ function card(r) {
       <div class="orig">cena w ogłoszeniu: ${orig}</div>
       <div class="deal ${cls}" title="Różnica względem wartości rynkowej">${r.deal_pct > 0 ? '+' : ''}${r.deal_pct.toFixed(1)}% vs rynek</div>
       <div class="acts">
+        <button class="an-btn" data-act="analysis" title="Wyposażenie, historia, sprzedawca, cena, pytania do sprzedawcy">Pełna analiza</button>
         <button class="icon ${r.mark === 'fav' ? 'on' : ''}" data-act="fav" title="Ulubione">★</button>
         <button class="icon" data-act="hidden" title="${r.mark === 'hidden' ? 'Przywróć' : 'Ukryj'}">${r.mark === 'hidden' ? '↺' : '✕'}</button>
         <button class="icon" data-act="open" title="Szczegóły">⋯</button>
@@ -404,6 +450,7 @@ $('#list').addEventListener('mouseleave', () => highlight(null, false));
 $('#list').addEventListener('click', async e => {
   const b = e.target.closest('[data-act]'); if (!b) return;
   const id = b.closest('.card').dataset.id, r = data.rows.find(x => x.id === id);
+  if (b.dataset.act === 'analysis') { openAnalysis(id); return; }
   if (b.dataset.act === 'open') {
     open.has(id) ? open.delete(id) : open.add(id);
     b.closest('.card').classList.toggle('open'); if (open.has(id)) loadHistory(id); return;
@@ -411,6 +458,107 @@ $('#list').addEventListener('click', async e => {
   const mark = r.mark === b.dataset.act ? null : b.dataset.act;
   await api('/api/mark', {id, mark}); r.mark = mark; render();
 });
+
+
+// --- pełna analiza ---
+const yn = v => v === true ? 'tak' : v === false ? 'nie' : '—';
+const scoreColor = v => v >= 7.5 ? 'var(--good)' : v >= 5 ? 'var(--accent)' : 'var(--bad)';
+function md(text) {  // minimalny markdown: nagłówki, listy, pogrubienia
+  const lines = esc(text).split('\n'); let out = '', inList = false;
+  for (let ln of lines) {
+    ln = ln.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+    const li = ln.match(/^\s*[-*•]\s+(.*)/) || ln.match(/^\s*\d+\.\s+(.*)/);
+    if (li) { if (!inList) { out += '<ul>'; inList = true; } out += `<li>${li[1]}</li>`; continue; }
+    if (inList) { out += '</ul>'; inList = false; }
+    const h = ln.match(/^#{1,4}\s+(.*)/);
+    if (h) out += `<h3>${h[1]}</h3>`; else if (ln.trim()) out += `<p style="margin:4px 0">${ln}</p>`;
+  }
+  return out + (inList ? '</ul>' : '');
+}
+const list = (items, cls = '') => items.length ? `<ul class="${cls}">${items.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '<span class="muted">—</span>';
+
+async function openAnalysis(id) {
+  const dlg = $('#analysis'), body = $('#anBody');
+  body.innerHTML = '<div class="an-loading">Analizuję ogłoszenie… (pierwsze otwarcie pobiera szczegóły z portalu)</div>';
+  dlg.showModal();
+  let a;
+  try { a = await api('/api/analysis?id=' + encodeURIComponent(id)); }
+  catch (e) { body.innerHTML = `<div class="an-head"><div class="an-loading">${esc(e.message)}</div><button class="an-close" onclick="this.closest('dialog').close()">✕</button></div>`; return; }
+  renderAnalysis(a);
+}
+
+function renderAnalysis(a) {
+  const r = data.rows.find(x => x.id === a.id) || {};
+  const m = a.market, f = a.facts, s = a.seller || {}, imp = a.import;
+  const vcol = a.overall >= 7.5 ? 'good' : a.overall >= 5 ? 'mid' : 'bad';
+  const meters = Object.entries(a.scores).map(([k, v]) => `<div class="meter"><span>${k}</span><div class="track"><div class="fill" style="width:${v * 10}%;background:${scoreColor(v)}"></div></div><b>${v.toFixed(1)}</b></div>`).join('');
+  const factRows = [['Wersja', f.version], ['Nadwozie', f.body], ['Kolor', f.color], ['Tapicerka', f.upholstery], ['Napęd', f.drive],
+    ['Skrzynia', f.gearbox], ['Moc', f.power_hp && f.power_hp + ' KM'], ['Bezwypadkowy', yn(f.accident_free)], ['Historia serwisowa', yn(f.service_history)],
+    ['Właściciele', f.previous_owners ?? (f.first_owner ? '1 (pierwszy)' : '—')], ['Pochodzenie', f.origin], ['Zarejestrowany w PL', yn(f.registered_pl)],
+    ['Gwarancja', f.warranty], ['Następny przegląd', f.next_inspection], ['Faktura VAT', yn(f.vat_invoice)], ['Do negocjacji', yn(f.negotiable)]]
+    .filter(([, v]) => v !== null && v !== undefined && v !== '' && v !== '—').map(([k, v]) => `<span>${k}</span><span>${esc(v)}</span>`).join('');
+  const sellerRows = [['Nazwa', s.name], ['Typ', s.dealer ? 'dealer' : 'osoba prywatna'], ['Adres', s.address],
+    ['Oceny', s.rating ? `${s.rating}/5 (${s.ratings_count || '?'} opinii${s.recommend_pct ? `, ${s.recommend_pct}% poleca` : ''})` : null],
+    ['Ogłoszeń', s.active_ads], ['Na portalu', s.since], ['Programy', (s.seals || []).join(', ')], ['Odznaki', (s.badges || []).join(', ')]]
+    .filter(([, v]) => v).map(([k, v]) => `<span>${k}</span><span>${esc(v)}</span>`).join('')
+    + (s.website && /^https?:/.test(s.website) ? `<span>Strona</span><span><a href="${esc(s.website)}" target="_blank" rel="noopener">${esc(s.website)}</a></span>` : '');
+  const eqCats = Object.entries(a.equipment || {}).map(([c, items]) => `<div class="eqcat"><b>${esc(c)}</b>${items.map(esc).join(' · ')}</div>`).join('');
+  const impHtml = imp ? `<div class="an-box"><h4>Import z Niemiec – koszt</h4><div class="kv">
+      <span>Cena w ogłoszeniu</span><span>${nf.format(imp.price_eur)} € ${imp.net_eur ? `(netto ${nf.format(imp.net_eur)} €)` : ''}</span>
+      <span>Po kursie ${imp.rate.toFixed(4)}</span><span>${zl(imp.price_pln)}</span>
+      <span>Akcyza</span><span>${zl(imp.excise_pln)}</span>
+      <span>Transport i rejestracja</span><span>${zl(imp.fixed_pln)}</span>
+      <span><b>Razem w PL</b></span><span><b>${zl(imp.total_pln)}</b></span>
+      <span>Sposób liczenia</span><span>${esc(imp.note || '')}</span></div></div>` : '';
+  let aiHtml;
+  if (a.ai) aiHtml = `<div class="ai">${md(a.ai.text)}</div><div class="hint">Wygenerowano ${esc((a.ai.created || '').replace('T', ' '))} · ${esc(a.ai.model || '')}</div>`;
+  else if (!STATIC && data.ai_enabled) aiHtml = `<button class="btn primary" id="aiBtn" data-id="${esc(a.id)}">Wygeneruj podsumowanie AI</button><div class="hint">Claude przeanalizuje ogłoszenie i przygotuje werdykt, argumenty do negocjacji i pytania (koszt ok. kilka groszy).</div>`;
+  else aiHtml = `<span class="muted">${STATIC ? (data.ai_enabled ? 'Podsumowanie AI jest przygotowywane dla czołówki rankingu – to ogłoszenie jest poza nią.' : 'Podsumowanie AI jest wyłączone (brak klucza API w ustawieniach repozytorium).') : 'Podsumowanie AI wymaga klucza ANTHROPIC_API_KEY i biblioteki anthropic.'}</span>`;
+
+  $('#anBody').innerHTML = `
+  <div class="an-head">
+    <div style="min-width:0">
+      <h2>${esc(a.title)}</h2>
+      <div class="sub">${SRC[a.source]?.flag || ''} ${SRC[a.source]?.name || ''} · ${r.year || ''} · ${nf.format(r.km || 0)} km · miejsce <b>#${m.rank}</b> z ${m.of} · <a href="${esc(safeUrl(a.url))}" target="_blank" rel="noopener">otwórz ogłoszenie ↗</a>${a.carfax_url ? ` · <a href="${esc(safeUrl(a.carfax_url))}" target="_blank" rel="noopener">raport Carfax ↗</a>` : ''}</div>
+      <div class="verdict deal ${vcol}">${esc(a.verdict)}</div>
+    </div>
+    <div class="an-score"><div class="big" style="color:${scoreColor(a.overall)}">${a.overall.toFixed(1)}<small>/10</small></div><div class="sub">ocena ogólna</div></div>
+    <button class="an-close" title="Zamknij" onclick="this.closest('dialog').close()">✕</button>
+  </div>
+  <div class="an-grid">
+    <div class="an-box"><h4>Oceny cząstkowe</h4>${meters}</div>
+    <div class="an-box"><h4>Cena na tle rynku</h4><div class="kv">
+      <span>Koszt w Polsce</span><span><b>${zl(m.cost_pln)}</b></span>
+      <span>Wartość rynkowa</span><span>${zl(m.expected_pln)}</span>
+      <span>Różnica</span><span class="${m.deal_pct > 0 ? 'good' : 'bad'}"><b>${m.deal_pct > 0 ? '+' : ''}${m.deal_pct}%</b> (${m.deal_pct >= 0 ? 'taniej' : 'drożej'} o ${zl(Math.abs(m.expected_pln - m.cost_pln))})</span>
+      <span>Tańszych ogłoszeń</span><span>${m.cheaper_count} z ${m.of - 1}</span></div></div>
+    ${a.flags.length ? `<div class="an-box flags an-full"><h4>⚠ Sygnały ostrzegawcze</h4>${list(a.flags)}</div>` : ''}
+    <div class="an-box an-full"><h4>Podsumowanie AI</h4><div id="aiBox">${aiHtml}</div></div>
+    <div class="an-box"><h4>✓ Plusy</h4>${list(a.pros)}</div>
+    <div class="an-box"><h4>✗ Minusy</h4>${list(a.cons)}</div>
+    <div class="an-box an-full"><h4>Wyposażenie (${a.equipment_count} pozycji w ogłoszeniu)</h4>
+      <div class="chips">${a.highlights.map(x => `<span class="chip-ok">✓ ${esc(x)}</span>`).join('')}${a.missing.map(x => `<span class="chip-no">? ${esc(x)}</span>`).join('')}</div>
+      ${a.packages.length ? `<div class="hint">Pakiety: ${a.packages.map(esc).join(', ')}</div>` : ''}
+      ${eqCats ? `<details class="more"><summary>Pełna lista wyposażenia</summary>${eqCats}</details>` : ''}</div>
+    <div class="an-box"><h4>Auto</h4><div class="kv">${factRows || '<span class="muted">Brak szczegółów</span>'}</div></div>
+    <div class="an-box"><h4>Sprzedawca</h4><div class="kv">${sellerRows || '<span class="muted">Brak danych</span>'}</div></div>
+    ${impHtml}
+    <div class="an-box ${imp ? '' : 'an-full'}"><h4>Pytania do sprzedawcy</h4>${list(a.questions, 'checklist')}</div>
+    ${a.description ? `<div class="an-box an-full"><h4>Opis sprzedawcy</h4><details class="more"><summary>Pokaż opis</summary><div class="desc">${esc(a.description)}</div></details></div>` : ''}
+  </div>
+  <div class="hint" style="margin-top:12px">Analiza automatyczna na podstawie danych z ogłoszenia${a.details_fetched ? ` (pobrane ${esc(a.details_fetched.replace('T', ' '))})` : ''}. Deklaracje sprzedawcy warto potwierdzić: VIN, historia w ASO, pomiar lakieru, jazda próbna.</div>`;
+}
+
+$('#anBody').addEventListener('click', async e => {
+  const b = e.target.closest('#aiBtn'); if (!b) return;
+  b.disabled = true; b.textContent = 'Claude analizuje… (ok. 20–60 s)';
+  try {
+    const res = await api('/api/ai', {id: b.dataset.id});
+    if (res.error) throw new Error(res.error);
+    $('#aiBox').innerHTML = `<div class="ai">${md(res.text)}</div><div class="hint">Wygenerowano ${esc((res.created || '').replace('T', ' '))} · ${esc(res.model || '')}</div>`;
+  } catch (err) { b.disabled = false; b.textContent = 'Spróbuj ponownie'; $('#aiBox').insertAdjacentHTML('beforeend', `<div class="hint" style="color:var(--bad)">${esc(err.message)}</div>`); }
+});
+$('#analysis').addEventListener('click', e => { if (e.target.id === 'analysis') e.target.close(); });
 
 // --- filtry ---
 $('#srcSeg').addEventListener('click', e => {

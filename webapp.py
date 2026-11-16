@@ -16,6 +16,7 @@ import traceback
 import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
+import details as D
 import tracker as t
 
 PORT = int(os.environ.get("PORT", "8330"))
@@ -63,6 +64,7 @@ def run_scrape():
             cfg = t.load_config()
             con = t.db()
             info = t.scrape_all(con, cfg, progress=lambda m: state.update(message=m))
+            D.fetch_missing(con, cfg, progress=lambda m: state.update(message=m))
             n_new = sum(info["new"].values())
             state["message"] = "Gotowe: %d ogłoszeń, nowych %d" % (sum(info["counts"].values()), n_new)
             if info["errors"]:
@@ -131,7 +133,7 @@ def api_listings():
                          "AND error IS NOT NULL").fetchall()
     resp = {"rows": out, "model": model, "rate": rate, "last_run": last_run(con),
             "today": day, "config": {k: cfg.get(k) for k in EDITABLE},
-            "min_year": cfg["min_year"], "errors": [{"source": s, "error": e} for s, e in errors]}
+            "min_year": cfg["min_year"], "ai_enabled": D.ai_available(), "errors": [{"source": s, "error": e} for s, e in errors]}
     con.close()
     return resp
 
@@ -141,6 +143,28 @@ def api_history(listing_id):
     rows = con.execute("SELECT day, price FROM price_history WHERE id=? ORDER BY day", (listing_id,)).fetchall()
     con.close()
     return [{"day": d, "price": p} for d, p in rows]
+
+
+def api_analysis(lid):
+    cfg = t.load_config()
+    con = t.db()
+    try:
+        a, _ = D.full_analysis(con, cfg, lid)
+        return a
+    finally:
+        con.close()
+
+
+def api_ai(body):
+    if not D.ai_available():
+        return {"error": "Brak klucza ANTHROPIC_API_KEY lub biblioteki anthropic (pip install anthropic)."}
+    cfg = t.load_config()
+    con = t.db()
+    try:
+        a, row = D.full_analysis(con, cfg, body["id"])
+        return D.make_ai(con, a, row, cfg)
+    finally:
+        con.close()
 
 
 def api_mark(body):
@@ -205,6 +229,8 @@ class Handler(BaseHTTPRequestHandler):
                 return self.send_json(api_listings())
             if u.path == "/api/history":
                 return self.send_json(api_history(q.get("id", [""])[0]))
+            if u.path == "/api/analysis":
+                return self.send_json(api_analysis(q.get("id", [""])[0]))
             if u.path == "/api/status":
                 return self.send_json({k: state[k] for k in ("running", "message", "last_error")})
             self.send_json({"error": "not found"}, 404)
@@ -222,6 +248,8 @@ class Handler(BaseHTTPRequestHandler):
             body = self.read_body()
             if u.path == "/api/run":
                 return self.send_json({"started": run_scrape()})
+            if u.path == "/api/ai":
+                return self.send_json(api_ai(body))
             if u.path == "/api/mark":
                 return self.send_json(api_mark(body))
             if u.path == "/api/config":
@@ -239,6 +267,7 @@ def main():
         save_config(cfg)
     con = t.db()
     ensure_tables(con)
+    D.ensure_tables(con)
     con.close()
     threading.Thread(target=scheduler, daemon=True).start()
     srv = ThreadingHTTPServer(("127.0.0.1", PORT), Handler)

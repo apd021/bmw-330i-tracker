@@ -20,6 +20,19 @@ historia cen, ulubione i ukrywanie ogłoszeń, przycisk „Odśwież dane” i u
 koszty importu, akcyza, godzina pobierania, kraje AutoScout24).
 Jeśli używasz aplikacji webowej, `install_schedule.sh` nie jest potrzebny.
 
+## Pełna analiza ogłoszenia
+Przycisk **Pełna analiza** na każdej karcie otwiera raport: ocena ogólna i cząstkowe (cena, stan i historia,
+wyposażenie, sprzedawca), sygnały ostrzegawcze, plusy i minusy, wykryte kluczowe wyposażenie (ACC, kamery 360°,
+HUD, Harman Kardon, Comfort Access…) i czego brakuje, pełna lista wyposażenia, dane sprzedawcy (oceny, programy BMW),
+rozbicie kosztu importu z DE, pytania do sprzedawcy i opis z ogłoszenia.
+
+**Podsumowanie AI (opcjonalne):** po dodaniu klucza Claude API Claude pisze werdykt, argumenty do negocjacji
+(z ceną docelową) i pytania do sprzedawcy.
+- w chmurze: GitHub → repozytorium → Settings → Secrets and variables → Actions → `ANTHROPIC_API_KEY`;
+  generowane dla najlepszych `ai_top_n` ogłoszeń (domyślnie 25), raz na ogłoszenie (ponownie przy zmianie ceny),
+- lokalnie: `pip install anthropic` i `export ANTHROPIC_API_KEY=...`, potem przycisk w oknie analizy.
+Model: `ai_model` w `config.json` (domyślnie `claude-opus-5-5`).
+
 ## Wersja bez przeglądarki
 ```bash
 python3 tracker.py            # pobierz + raport

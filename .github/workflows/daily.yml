@@ -6,7 +6,7 @@ on:
   workflow_dispatch:          # przycisk "Run workflow" = odśwież teraz
   push:
     branches: [main]
-    paths: ["config.json", "static/**", "tracker.py", "webapp.py", "build_site.py"]
+    paths: ["config.json", "static/**", "tracker.py", "webapp.py", "build_site.py", "details.py"]
 
 permissions:
   contents: write
@@ -20,12 +20,18 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Zainstaluj bibliotekę Claude API (do podsumowań AI)
+        run: pip install anthropic
       - name: Pobierz ogłoszenia i zbuduj stronę
+        env:
+          # opcjonalnie: Settings -> Secrets and variables -> Actions -> ANTHROPIC_API_KEY
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           if [ "${{ github.event_name }}" = "push" ]; then
             python build_site.py --no-scrape

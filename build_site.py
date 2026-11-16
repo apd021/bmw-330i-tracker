@@ -9,10 +9,35 @@ import os
 import shutil
 import sys
 
+import details as D
 import tracker as t
 import webapp
 
 OUT = os.path.join(t.BASE, "site")
+
+
+def write_analyses(con, cfg):
+    """Pełna analiza każdego aktywnego ogłoszenia -> site/analysis/<id>.json.
+    Podsumowanie AI dla najlepszych `ai_top_n` ogłoszeń, jeśli jest klucz ANTHROPIC_API_KEY
+    (zapisywane w bazie, więc płacisz tylko raz za ogłoszenie, chyba że zmieni się cena)."""
+    D.ensure_tables(con)
+    rows, rate = D.ranked(con, cfg)
+    out = os.path.join(OUT, "analysis")
+    os.makedirs(out, exist_ok=True)
+    use_ai = D.ai_available() and cfg.get("ai_top_n", 0) > 0
+    made = 0
+    for r in rows:
+        a, row = D.full_analysis(con, cfg, r["id"], rows, rate, fetch=False)
+        if use_ai and r["rank"] <= cfg["ai_top_n"] and a["ai"] is None:
+            try:
+                a["ai"] = D.make_ai(con, a, row, cfg)
+                made += 1
+            except Exception as e:  # noqa: BLE001 - analiza regułowa i tak jest
+                t.log("AI %s: %s" % (r["id"], e))
+        with open(os.path.join(out, r["id"] + ".json"), "w", encoding="utf-8") as f:
+            json.dump(a, f, ensure_ascii=False, separators=(",", ":"))
+    t.log("Analizy: %d ogłoszeń, nowych podsumowań AI: %d%s"
+          % (len(rows), made, "" if use_ai else " (brak klucza ANTHROPIC_API_KEY – AI wyłączone)"))
 
 
 def main():
@@ -22,7 +47,10 @@ def main():
         info = t.scrape_all(con, cfg)
         if not any(info["counts"].values()):
             t.log("UWAGA: żaden portal nie zwrócił ogłoszeń: %s" % info["errors"])
+        D.fetch_missing(con, cfg)
+    write_analyses(con, cfg)
     data = webapp.api_listings()
+    data["ai_enabled"] = D.ai_available() and cfg.get("ai_top_n", 0) > 0
     ids = {r["id"] for r in data["rows"]}
     hist = {}
     for lid, day, price in t.db().execute("SELECT id, day, price FROM price_history ORDER BY day"):
