@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BMW 330i · ranking okazji</title>
+<style>
+:root{
+  color-scheme:light;
+  --bg:#f3f3f1; --surface-1:#fcfcfb; --surface-2:#f0efec; --border:#e2e1dc;
+  --text-primary:#0b0b0b; --text-secondary:#52514e; --text-muted:#85847f;
+  --accent:#1c69d4; --accent-ink:#fff;
+  --series-1:#2a78d6; --series-2:#eb6834;
+  --good:#1a7f37; --good-bg:#e6f4ea; --bad:#c62828; --bad-bg:#fdecea; --warn-bg:#fff4e0; --warn:#9a5b00;
+  --grid:#e8e7e2; --shadow:0 1px 2px rgba(0,0,0,.05),0 2px 8px rgba(0,0,0,.04);
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    color-scheme:dark;
+    --bg:#121211; --surface-1:#1a1a19; --surface-2:#242422; --border:#2f2f2c;
+    --text-primary:#f0efec; --text-secondary:#c3c2b7; --text-muted:#8e8d86;
+    --accent:#3987e5;
+    --series-1:#3987e5; --series-2:#d95926;
+    --good:#4cc26a; --good-bg:#16301d; --bad:#ef6b6b; --bad-bg:#3a1a1a; --warn-bg:#3a2a10; --warn:#f0b04a;
+    --grid:#2a2a28; --shadow:none;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text-primary)}
+button,input,select{font:inherit;color:inherit}
+a{color:inherit}
+.wrap{max-width:1400px;margin:0 auto;padding:20px 24px 48px}
+header{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+.logo{width:40px;height:40px;border-radius:50%;background:conic-gradient(var(--accent) 0 25%,#fff 0 50%,var(--accent) 0 75%,#fff 0);border:3px solid #111;flex:none}
+h1{font-size:22px;margin:0;letter-spacing:-.01em}
+.sub{color:var(--text-secondary);font-size:13px}
+.muted{color:var(--text-muted)}
+.spacer{flex:1}
+.btn{border:1px solid var(--border);background:var(--surface-1);padding:8px 14px;border-radius:10px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;box-shadow:var(--shadow)}
+.btn:hover{border-color:var(--text-muted)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn:disabled{opacity:.6;cursor:progress}
+.spin{width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:s 1s linear infinite;display:none}
+.running .spin{display:inline-block}
+@keyframes s{to{transform:rotate(360deg)}}
+.banner{padding:10px 14px;border-radius:10px;margin-bottom:14px;background:var(--warn-bg);color:var(--warn)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:var(--surface-1);border:1px solid var(--border);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow)}
+.kpi .l{color:var(--text-secondary);font-size:12px}
+.kpi .v{font-size:24px;font-weight:650;margin-top:2px;font-variant-numeric:tabular-nums}
+.kpi .s{color:var(--text-muted);font-size:12px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:var(--surface-1);border:1px solid var(--border);border-radius:14px;padding:10px 12px;margin-bottom:16px;box-shadow:var(--shadow)}
+.seg{display:inline-flex;background:var(--surface-2);border-radius:9px;padding:3px}
+.seg button{border:0;background:none;padding:5px 12px;border-radius:7px;cursor:pointer;color:var(--text-secondary)}
+.seg button.on{background:var(--surface-1);color:var(--text-primary);box-shadow:var(--shadow);font-weight:600}
+.chip{border:1px solid var(--border);background:none;padding:5px 11px;border-radius:999px;cursor:pointer;color:var(--text-secondary)}
+.chip.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.filters label{color:var(--text-secondary);font-size:13px;display:inline-flex;align-items:center;gap:6px}
+.filters select,.filters input{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:5px 8px}
+.filters input[type=number]{width:110px}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 420px;gap:16px;align-items:start}
+@media (max-width:1100px){.grid{grid-template-columns:1fr}.side{position:static!important}}
+.count{color:var(--text-secondary);margin:0 0 8px 2px;font-size:13px}
+.card{display:grid;grid-template-columns:40px 150px minmax(0,1fr) auto;gap:14px;align-items:center;background:var(--surface-1);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:10px;box-shadow:var(--shadow);transition:border-color .15s}
+.card.hl{border-color:var(--accent)}
+.card.hidden-item{opacity:.5}
+@media (max-width:700px){.card{grid-template-columns:32px 1fr}.card .thumb{grid-column:2}.card .main,.card .right{grid-column:1/-1}}
+.rank{font-size:22px;font-weight:700;color:var(--accent);text-align:center}
+.thumb{width:150px;height:100px;border-radius:10px;object-fit:cover;background:var(--surface-2);display:block}
+.title{font-weight:600;font-size:15px;text-decoration:none;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.title:hover{text-decoration:underline}
+.meta{color:var(--text-secondary);font-size:13px;margin-top:3px}
+.tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.tag{font-size:11px;padding:2px 7px;border-radius:6px;background:var(--surface-2);color:var(--text-secondary)}
+.tag.new{background:var(--good-bg);color:var(--good);font-weight:600}
+.tag.drop{background:var(--warn-bg);color:var(--warn);font-weight:600}
+.tag.sus{background:var(--bad-bg);color:var(--bad);font-weight:600}
+.src{display:inline-flex;align-items:center;gap:5px}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.right{text-align:right;min-width:190px}
+.cost{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums}
+.orig{color:var(--text-muted);font-size:12px}
+.deal{display:inline-block;margin-top:5px;padding:3px 9px;border-radius:8px;font-weight:700;font-variant-numeric:tabular-nums}
+.deal.good{background:var(--good-bg);color:var(--good)}
+.deal.bad{background:var(--bad-bg);color:var(--bad)}
+.deal.mid{background:var(--surface-2);color:var(--text-secondary)}
+.acts{margin-top:8px;display:flex;gap:4px;justify-content:flex-end}
+.icon{border:1px solid var(--border);background:none;border-radius:8px;width:32px;height:30px;cursor:pointer;color:var(--text-secondary)}
+.icon.on{color:#e0a100;border-color:#e0a100}
+.details{grid-column:1/-1;border-top:1px solid var(--border);padding-top:10px;display:none;gap:24px;flex-wrap:wrap;font-size:13px;color:var(--text-secondary)}
+.card.open .details{display:flex}
+.details b{color:var(--text-primary)}
+.panel{background:var(--surface-1);border:1px solid var(--border);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow);margin-bottom:16px}
+.panel h3{margin:0 0 2px;font-size:15px}
+.side{position:sticky;top:16px}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--text-secondary);margin:6px 0 4px}
+svg text{fill:var(--text-muted);font-size:11px}
+.tip{position:fixed;pointer-events:none;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:8px 10px;font-size:12px;box-shadow:0 4px 16px rgba(0,0,0,.15);z-index:20;display:none;max-width:260px}
+.tip b{font-size:13px}
+.model{display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:13px}
+.model span:nth-child(even){text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+dialog{border:1px solid var(--border);border-radius:16px;background:var(--surface-1);color:var(--text-primary);padding:20px 22px;width:min(440px,92vw)}
+dialog::backdrop{background:rgba(0,0,0,.35)}
+dialog label{display:block;margin:12px 0 4px;color:var(--text-secondary);font-size:13px}
+dialog input,dialog select{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface-2)}
+dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+.hint{font-size:12px;color:var(--text-muted);margin-top:4px}
+.empty{padding:40px;text-align:center;color:var(--text-muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo" aria-hidden="true"></div>
+    <div>
+      <h1>BMW 330i · ranking okazji</h1>
+      <div class="sub" id="subtitle">Ładowanie…</div>
+    </div>
+    <div class="spacer"></div>
+    <span class="sub" id="status"></span>
+    <button class="btn" id="settingsBtn">⚙︎ Ustawienia</button>
+    <button class="btn primary" id="runBtn"><span class="spin"></span><span>Odśwież dane</span></button>
+  </header>
+
+  <div id="banners"></div>
+  <section class="kpis" id="kpis"></section>
+
+  <section class="filters" aria-label="Filtry">
+    <div class="seg" id="srcSeg">
+      <button data-v="all" class="on">Wszystkie</button>
+      <button data-v="otomoto">🇵🇱 Polska</button>
+      <button data-v="autoscout24">🇩🇪 Niemcy</button>
+    </div>
+    <button class="chip" data-f="xdrive">xDrive</button>
+    <button class="chip" data-f="touring">Touring</button>
+    <button class="chip" data-f="sedan">Sedan</button>
+    <button class="chip" data-f="isNew">Tylko nowe</button>
+    <button class="chip" data-f="fav">★ Ulubione</button>
+    <button class="chip" data-f="showHidden">Pokaż ukryte</button>
+    <label>Przebieg do
+      <select id="maxKm"><option value="">dowolny</option><option>10000</option><option>20000</option><option>30000</option><option>50000</option></select>
+    </label>
+    <label>Koszt do <input type="number" id="maxCost" placeholder="zł" step="5000" min="0"></label>
+    <div class="spacer"></div>
+    <label>Sortuj
+      <select id="sort">
+        <option value="deal">największa okazja</option>
+        <option value="cost">najniższy koszt</option>
+        <option value="km">najmniejszy przebieg</option>
+        <option value="newest">najnowsze</option>
+      </select>
+    </label>
+  </section>
+
+  <div class="grid">
+    <main>
+      <div class="count" id="count"></div>
+      <div id="list"></div>
+    </main>
+    <aside class="side">
+      <div class="panel">
+        <h3>Koszt w Polsce a przebieg</h3>
+        <div class="sub">Każdy punkt to ogłoszenie z aktualnych filtrów. Kliknij, aby przejść do ogłoszenia na liście.</div>
+        <div class="legend"><span class="src"><span class="dot" style="background:var(--series-1)"></span>Polska (otomoto)</span><span class="src"><span class="dot" style="background:var(--series-2)"></span>Niemcy (AutoScout24)</span></div>
+        <svg id="chart" viewBox="0 0 388 280" width="100%" role="img" aria-label="Wykres punktowy: koszt w PLN względem przebiegu"></svg>
+      </div>
+      <div class="panel">
+        <h3>Co wpływa na cenę</h3>
+        <div class="sub" style="margin-bottom:8px">Model dopasowany do wszystkich bieżących ogłoszeń PL+DE</div>
+        <div class="model" id="model"></div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<div class="tip" id="tip"></div>
+
+<dialog id="settings">
+  <form method="dialog" id="settingsForm">
+    <h3 style="margin:0">Ustawienia</h3>
+    <label>Kupujesz jako</label>
+    <select name="buyer_type">
+      <option value="private">osoba prywatna (porównuję ceny brutto)</option>
+      <option value="company">firma (VAT do odliczenia – ceny netto)</option>
+    </select>
+    <label>Koszty importu z DE (transport, tłumaczenia, przegląd, rejestracja), zł</label>
+    <input name="import_fixed_costs_pln" type="number" min="0" step="100">
+    <label>Akcyza (ułamek, 0.031 = 3,1% dla silników do 2,0 l)</label>
+    <input name="excise_rate" type="number" min="0" max="0.2" step="0.001">
+    <label>Codzienne pobieranie o godzinie</label>
+    <input name="daily_run_hour" type="number" min="0" max="23">
+    <label>Kraje na AutoScout24 (np. D lub D,A,NL)</label>
+    <input name="autoscout24_countries">
+    <div class="hint">Zmiana krajów zadziała przy następnym odświeżeniu danych.</div>
+    <div class="row">
+      <button class="btn" value="cancel" formnovalidate>Anuluj</button>
+      <button class="btn primary" value="save">Zapisz</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+const $ = s => document.querySelector(s);
+const nf = new Intl.NumberFormat('pl-PL', {maximumFractionDigits: 0});
+const zl = n => nf.format(n) + ' zł';
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const safeUrl = u => /^https?:\/\//i.test(u || '') ? u : '#';
+const SRC = {otomoto: {name: 'otomoto', flag: '🇵🇱', color: 'var(--series-1)'},
+             autoscout24: {name: 'AutoScout24', flag: '🇩🇪', color: 'var(--series-2)'}};
+
+let data = null;
+const F = {src: 'all', xdrive: false, touring: false, sedan: false, isNew: false, fav: false, showHidden: false, maxKm: '', maxCost: '', sort: 'deal'};
+let open = new Set();
+
+// W wersji chmurowej (GitHub Pages) nie ma serwera: dane z data.json, oznaczenia w przeglądarce.
+const STATIC = window.STATIC_SITE || null;
+let staticData = null;
+const localMarks = () => JSON.parse(localStorage.getItem('bmw330i-marks') || '{}');
+
+async function api(path, body) {
+  if (STATIC) return staticApi(path, body);
+  const r = await fetch(path, body ? {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)} : {});
+  if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || r.statusText);
+  return r.json();
+}
+
+async function staticApi(path, body) {
+  if (path === '/api/listings') {
+    const r = await fetch('data.json', {cache: 'no-cache'});
+    if (!r.ok) throw new Error('brak data.json');
+    staticData = await r.json();
+    const m = localMarks();
+    staticData.rows.forEach(x => x.mark = m[x.id] || null);
+    return staticData;
+  }
+  if (path.startsWith('/api/history')) {
+    const id = decodeURIComponent(path.split('id=')[1] || '');
+    return (staticData.history[id] || []).map(([day, price]) => ({day, price}));
+  }
+  if (path === '/api/mark') {
+    const m = localMarks();
+    if (body.mark) m[body.id] = body.mark; else delete m[body.id];
+    localStorage.setItem('bmw330i-marks', JSON.stringify(m));
+    return {ok: true};
+  }
+  if (path === '/api/status') return {running: false, message: '', last_error: null};
+  return {};
+}
+
+async function load() {
+  data = await api('/api/listings');
+  renderHeader(); render();
+}
+
+function median(a) { if (!a.length) return null; const s = [...a].sort((x, y) => x - y); return s[Math.floor(s.length / 2)]; }
+
+function renderHeader() {
+  const c = data.config;
+  $('#subtitle').textContent = `Rocznik ${data.min_year}+ · ostatnie pobranie: ${data.last_run || 'jeszcze nie'} · kurs EUR/PLN (ECB) ${data.rate.toFixed(4)} · ${c.buyer_type === 'company' ? 'firma (netto)' : 'osoba prywatna (brutto)'}`;
+  $('#banners').innerHTML = data.errors.map(e => `<div class="banner">⚠ Nie udało się pobrać <b>${esc(e.source)}</b>: ${esc(e.error)}. Pokazuję ostatnie znane dane.</div>`).join('');
+  const rows = data.rows, pl = rows.filter(r => r.source === 'otomoto'), de = rows.filter(r => r.source !== 'otomoto');
+  const best = rows[0];
+  const kpis = [
+    ['Aktywne ogłoszenia', rows.length, `${pl.length} PL · ${de.length} DE`],
+    ['Nowe dziś', rows.filter(r => r.is_new).length, 'od ostatniego pobrania'],
+    ['Mediana w Polsce', pl.length ? zl(median(pl.map(r => r.cost_pln))) : '—', 'otomoto, cena brutto'],
+    ['Mediana z Niemiec', de.length ? zl(median(de.map(r => r.cost_pln))) : '—', 'z akcyzą i kosztami importu'],
+    ['Najlepsza okazja', best ? (best.deal_pct > 0 ? '+' : '') + best.deal_pct.toFixed(1) + '%' : '—', best ? `${zl(best.cost_pln)} · ${nf.format(best.km)} km` : ''],
+  ];
+  $('#kpis').innerHTML = kpis.map(([l, v, s]) => `<div class="kpi"><div class="l">${l}</div><div class="v">${esc(v)}</div><div class="s">${esc(s)}</div></div>`).join('');
+  const m = data.model, sign = v => (v > 0 ? '+' : '') + v.toFixed(1) + '%';
+  $('#model').innerHTML = Object.keys(m).length ? [
+    ['Każde 10 000 km przebiegu', m.km10k], ['Każdy rok wieku', m.age_y], ['xDrive', m.xdrive], ['Touring (kombi)', m.touring], ['Pakiet M Sport', m.m_sport]
+  ].map(([l, v]) => `<span>${l}</span><span>${sign(v)}</span>`).join('') : '<span class="muted">Za mało danych.</span>';
+}
+
+function filtered() {
+  let rows = data.rows.filter(r => {
+    if (F.src !== 'all' && r.source !== F.src) return false;
+    if (F.xdrive && !r.xdrive) return false;
+    if (F.touring && !r.touring) return false;
+    if (F.sedan && r.touring) return false;
+    if (F.isNew && !r.is_new) return false;
+    if (F.fav && r.mark !== 'fav') return false;
+    if (!F.showHidden && r.mark === 'hidden') return false;
+    if (F.maxKm && r.km > +F.maxKm) return false;
+    if (F.maxCost && r.cost_pln > +F.maxCost) return false;
+    return true;
+  });
+  const by = {deal: (a, b) => b.deal_pct - a.deal_pct, cost: (a, b) => a.cost_pln - b.cost_pln,
+              km: (a, b) => a.km - b.km, newest: (a, b) => (b.first_seen || '').localeCompare(a.first_seen || '') || b.deal_pct - a.deal_pct};
+  return rows.sort(by[F.sort]);
+}
+
+function card(r) {
+  const s = SRC[r.source] || SRC.autoscout24;
+  const drop = r.first_price && r.price < r.first_price ? Math.round((r.first_price - r.price) / r.first_price * 100) : 0;
+  const cls = r.deal_pct > 3 ? 'good' : r.deal_pct < -3 ? 'bad' : 'mid';
+  const reg = r.reg_month ? `${String(r.reg_month).padStart(2, '0')}/${r.year}` : r.year;
+  const orig = r.currency === 'PLN' ? zl(r.price) : nf.format(r.price) + ' €';
+  const tags = [
+    r.is_new && '<span class="tag new">NOWE</span>',
+    drop > 0 && `<span class="tag drop">obniżka ${drop}%</span>`,
+    r.deal_pct > 25 && '<span class="tag sus" title="Bardzo tanio – sprawdź stan, pochodzenie i czy cena jest pełna">sprawdź!</span>',
+    r.xdrive && '<span class="tag">xDrive</span>', r.touring ? '<span class="tag">Touring</span>' : '<span class="tag">Sedan</span>',
+    r.m_sport && '<span class="tag">M Sport</span>', `<span class="tag">${r.dealer ? 'dealer' : 'prywatny'}</span>`,
+  ].filter(Boolean).join('');
+  return `<article class="card ${open.has(r.id) ? 'open' : ''} ${r.mark === 'hidden' ? 'hidden-item' : ''}" id="c-${esc(r.id)}" data-id="${esc(r.id)}">
+    <div class="rank">${r.rank}</div>
+    ${r.thumb ? `<img class="thumb" src="${esc(safeUrl(r.thumb))}" alt="" loading="lazy" referrerpolicy="no-referrer">` : '<div class="thumb"></div>'}
+    <div class="main" style="min-width:0">
+      <a class="title" href="${esc(safeUrl(r.url))}" target="_blank" rel="noopener">${esc(r.title)}</a>
+      <div class="meta"><span class="src"><span class="dot" style="background:${s.color}"></span>${s.flag} ${s.name}</span> · ${esc(r.location)} · ${reg} · <b>${nf.format(r.km)} km</b></div>
+      <div class="tags">${tags}</div>
+    </div>
+    <div class="right">
+      <div class="cost">${zl(r.cost_pln)}</div>
+      <div class="orig">cena w ogłoszeniu: ${orig}</div>
+      <div class="deal ${cls}" title="Różnica względem wartości rynkowej">${r.deal_pct > 0 ? '+' : ''}${r.deal_pct.toFixed(1)}% vs rynek</div>
+      <div class="acts">
+        <button class="icon ${r.mark === 'fav' ? 'on' : ''}" data-act="fav" title="Ulubione">★</button>
+        <button class="icon" data-act="hidden" title="${r.mark === 'hidden' ? 'Przywróć' : 'Ukryj'}">${r.mark === 'hidden' ? '↺' : '✕'}</button>
+        <button class="icon" data-act="open" title="Szczegóły">⋯</button>
+      </div>
+    </div>
+    <div class="details">
+      <div>Koszt w PL: <b>${zl(r.cost_pln)}</b><br><span class="muted">${esc(r.cost_note)}</span></div>
+      <div>Wartość rynkowa: <b>${zl(r.expected_pln)}</b><br><span class="muted">${r.deal_pct >= 0 ? 'oszczędzasz' : 'przepłacasz'} ~${zl(Math.abs(r.expected_pln - r.cost_pln))}</span></div>
+      <div>W bazie od: <b>${esc(r.first_seen)}</b>${r.power_hp ? `<br>Moc: <b>${r.power_hp} KM</b>` : ''}</div>
+      <div class="hist" data-hist="${esc(r.id)}"><span class="muted">Historia ceny…</span></div>
+    </div>
+  </article>`;
+}
+
+function render() {
+  const rows = filtered();
+  $('#count').textContent = `${rows.length} z ${data.rows.length} ogłoszeń`;
+  $('#list').innerHTML = rows.length ? rows.slice(0, 200).map(card).join('') : '<div class="empty">Brak ogłoszeń dla tych filtrów.</div>';
+  open.forEach(id => loadHistory(id));
+  chart(rows);
+}
+
+async function loadHistory(id) {
+  const el = document.querySelector(`[data-hist="${CSS.escape(id)}"]`);
+  if (!el) return;
+  const h = await api('/api/history?id=' + encodeURIComponent(id));
+  const r = data.rows.find(x => x.id === id), cur = r.currency === 'PLN' ? 'zł' : '€';
+  if (h.length < 2) { el.innerHTML = `Historia ceny: <b>bez zmian</b><br><span class="muted">${h.length} pomiar</span>`; return; }
+  const ps = h.map(x => x.price), mn = Math.min(...ps), mx = Math.max(...ps), W = 160, H = 34;
+  const pts = h.map((x, i) => `${(i / (h.length - 1) * W).toFixed(1)},${(H - 3 - (mx === mn ? .5 : (x.price - mn) / (mx - mn)) * (H - 6)).toFixed(1)}`).join(' ');
+  el.innerHTML = `Historia ceny (${h.length} dni): <b>${nf.format(ps[0])} → ${nf.format(ps.at(-1))} ${cur}</b><br>
+    <svg width="${W}" height="${H}"><polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round"/></svg>`;
+}
+
+// --- wykres punktowy ---
+function chart(rows) {
+  const svg = $('#chart'), W = 388, H = 280, m = {l: 52, r: 10, t: 10, b: 34};
+  if (!rows.length) { svg.innerHTML = ''; return; }
+  const xs = rows.map(r => r.km), ys = rows.map(r => r.cost_pln);
+  const nice = (v, step, up) => (up ? Math.ceil(v / step) : Math.floor(v / step)) * step;
+  const x0 = 0, x1 = Math.max(10000, nice(Math.max(...xs), 10000, true));
+  const y0 = nice(Math.min(...ys), 20000, false), y1 = nice(Math.max(...ys), 20000, true) || y0 + 20000;
+  const X = v => m.l + (v - x0) / (x1 - x0) * (W - m.l - m.r), Y = v => H - m.b - (v - y0) / (y1 - y0 || 1) * (H - m.t - m.b);
+  let g = '';
+  const ystep = (y1 - y0) / 20000 > 6 ? 40000 : 20000;
+  for (let v = y0; v <= y1; v += ystep) g += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--grid)"/><text x="${m.l - 6}" y="${Y(v) + 4}" text-anchor="end">${nf.format(v / 1000)}k</text>`;
+  const xstep = x1 > 60000 ? 20000 : 10000;
+  for (let v = 0; v <= x1; v += xstep) g += `<text x="${X(v)}" y="${H - m.b + 16}" text-anchor="middle">${nf.format(v / 1000)}k</text>`;
+  g += `<text x="${(W + m.l) / 2}" y="${H - 4}" text-anchor="middle">przebieg (km)</text>`;
+  g += `<text x="12" y="${(H - m.b) / 2}" text-anchor="middle" transform="rotate(-90 12 ${(H - m.b) / 2})">koszt w PL (zł)</text>`;
+  // DE pod spodem, PL na wierzchu (mniej liczne)
+  const order = [...rows].sort((a, b) => (a.source === 'otomoto') - (b.source === 'otomoto'));
+  const dots = order.map(r => `<circle class="pt" data-id="${esc(r.id)}" cx="${X(r.km).toFixed(1)}" cy="${Y(r.cost_pln).toFixed(1)}" r="4.5" fill="${(SRC[r.source] || SRC.autoscout24).color}" stroke="var(--surface-1)" stroke-width="2" style="cursor:pointer"/>`).join('');
+  svg.innerHTML = g + `<g id="dots">${dots}</g><circle id="ring" r="9" fill="none" stroke="var(--text-primary)" stroke-width="2" style="display:none"/>`;
+}
+
+function highlight(id, on) {
+  const ring = $('#ring'), pt = id && document.querySelector(`.pt[data-id="${CSS.escape(id)}"]`);
+  if (ring) { ring.style.display = on && pt ? '' : 'none'; if (pt) { ring.setAttribute('cx', pt.getAttribute('cx')); ring.setAttribute('cy', pt.getAttribute('cy')); } }
+  document.querySelectorAll('.card.hl').forEach(c => c.classList.remove('hl'));
+  if (on && id) document.getElementById('c-' + id)?.classList.add('hl');
+}
+
+const tip = $('#tip');
+$('#chart').addEventListener('mousemove', e => {
+  const pt = e.target.closest('.pt');
+  if (!pt) { tip.style.display = 'none'; highlight(null, false); return; }
+  const r = data.rows.find(x => x.id === pt.dataset.id);
+  tip.innerHTML = `<b>${esc(r.title)}</b><br>${SRC[r.source]?.flag || ''} ${nf.format(r.km)} km · ${r.year}<br>Koszt w PL: <b>${zl(r.cost_pln)}</b><br>${r.deal_pct > 0 ? '+' : ''}${r.deal_pct.toFixed(1)}% vs rynek · miejsce #${r.rank}`;
+  tip.style.display = 'block';
+  tip.style.left = Math.min(e.clientX + 14, innerWidth - 270) + 'px'; tip.style.top = (e.clientY + 14) + 'px';
+  highlight(r.id, true);
+});
+$('#chart').addEventListener('mouseleave', () => { tip.style.display = 'none'; highlight(null, false); });
+$('#chart').addEventListener('click', e => {
+  const pt = e.target.closest('.pt'); if (!pt) return;
+  const el = document.getElementById('c-' + pt.dataset.id);
+  if (el) { el.scrollIntoView({behavior: 'smooth', block: 'center'}); el.classList.add('hl'); setTimeout(() => el.classList.remove('hl'), 1500); }
+});
+$('#list').addEventListener('mouseover', e => { const c = e.target.closest('.card'); highlight(c?.dataset.id, !!c); });
+$('#list').addEventListener('mouseleave', () => highlight(null, false));
+
+// --- akcje na kartach ---
+$('#list').addEventListener('click', async e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const id = b.closest('.card').dataset.id, r = data.rows.find(x => x.id === id);
+  if (b.dataset.act === 'open') {
+    open.has(id) ? open.delete(id) : open.add(id);
+    b.closest('.card').classList.toggle('open'); if (open.has(id)) loadHistory(id); return;
+  }
+  const mark = r.mark === b.dataset.act ? null : b.dataset.act;
+  await api('/api/mark', {id, mark}); r.mark = mark; render();
+});
+
+// --- filtry ---
+$('#srcSeg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  F.src = b.dataset.v; document.querySelectorAll('#srcSeg button').forEach(x => x.classList.toggle('on', x === b)); render();
+});
+document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => {
+  const f = c.dataset.f; F[f] = !F[f]; c.classList.toggle('on', F[f]);
+  if (f === 'touring' && F.touring) { F.sedan = false; document.querySelector('[data-f=sedan]').classList.remove('on'); }
+  if (f === 'sedan' && F.sedan) { F.touring = false; document.querySelector('[data-f=touring]').classList.remove('on'); }
+  render();
+}));
+$('#maxKm').addEventListener('change', e => { F.maxKm = e.target.value; render(); });
+$('#maxCost').addEventListener('input', e => { F.maxCost = e.target.value; render(); });
+$('#sort').addEventListener('change', e => { F.sort = e.target.value; render(); });
+
+// --- odświeżanie danych ---
+async function poll() {
+  const s = await api('/api/status');
+  $('#runBtn').disabled = s.running; $('#runBtn').classList.toggle('running', s.running);
+  $('#status').textContent = s.message || '';
+  if (s.running) setTimeout(poll, 2000);
+  else if (s.message) { await load(); if (s.last_error) $('#status').textContent = '⚠ ' + s.last_error; }
+}
+$('#runBtn').addEventListener('click', async () => {
+  if (STATIC) { window.open(STATIC.actions, '_blank', 'noopener'); return; }
+  await api('/api/run', {}); poll();
+});
+
+// --- ustawienia ---
+$('#settingsBtn').addEventListener('click', () => {
+  if (STATIC) { window.open(STATIC.config, '_blank', 'noopener'); return; }
+  const f = $('#settingsForm');
+  for (const [k, v] of Object.entries(data.config)) if (f.elements[k]) f.elements[k].value = v;
+  $('#settings').showModal();
+});
+$('#settings').addEventListener('close', async () => {
+  if ($('#settings').returnValue !== 'save') return;
+  const f = $('#settingsForm'), body = {};
+  for (const k of Object.keys(data.config)) if (f.elements[k]) body[k] = f.elements[k].value;
+  await api('/api/config', body); await load();
+});
+
+if (STATIC) {
+  $('#runBtn').title = 'Otwiera GitHub Actions – kliknij „Run workflow”, by pobrać dane teraz';
+  $('#settingsBtn').title = 'Ustawienia są w pliku config.json w repozytorium (edycja przebuduje stronę)';
+}
+load().then(() => api('/api/status')).then(s => { if (s.running) poll(); }).catch(e => { $('#subtitle').textContent = 'Błąd: ' + e.message; });
+</script>
+</body>
+</html>

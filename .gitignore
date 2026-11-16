@@ -1,0 +1,7 @@
+site/
+reports/
+logs/
+__pycache__/
+*.pyc
+config.json.tmp
+.DS_Store

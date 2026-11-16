@@ -1,0 +1,55 @@
+name: Codzienny ranking BMW 330i
+
+on:
+  schedule:
+    - cron: "0 6 * * *"      # codziennie 06:00 UTC (7:00 zimą / 8:00 latem w Polsce)
+  workflow_dispatch:          # przycisk "Run workflow" = odśwież teraz
+  push:
+    branches: [main]
+    paths: ["config.json", "static/**", "tracker.py", "webapp.py", "build_site.py"]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: ranking
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Pobierz ogłoszenia i zbuduj stronę
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            python build_site.py --no-scrape
+          else
+            python build_site.py
+          fi
+      - name: Zapisz bazę (historia cen)
+        if: github.event_name != 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/listings.db
+          git diff --cached --quiet || git commit -m "Dane $(date -u +%F)"
+          git pull --rebase && git push
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

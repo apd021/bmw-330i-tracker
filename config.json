@@ -1,0 +1,20 @@
+{
+  "min_year": 2025,
+  "buyer_type": "private",
+  "sources": [
+    "otomoto",
+    "autoscout24"
+  ],
+  "autoscout24_countries": "D",
+  "max_pages_per_source": 20,
+  "request_delay_seconds": 3,
+  "excise_rate": 0.031,
+  "import_fixed_costs_pln": 2500,
+  "pl_vat": 0.23,
+  "de_vat": 0.19,
+  "fallback_eur_pln": 4.25,
+  "top_n_in_report": 30,
+  "notify_macos": true,
+  "open_report_after_run": false,
+  "daily_run_hour": 8
+}
