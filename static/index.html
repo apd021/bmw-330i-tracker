@@ -74,6 +74,7 @@ h1{font-size:22px;margin:0;letter-spacing:-.01em}
 .tag{font-size:11px;padding:2px 7px;border-radius:6px;background:var(--surface-2);color:var(--text-secondary)}
 .tag.new{background:var(--good-bg);color:var(--good);font-weight:600}
 .tag.drop{background:var(--warn-bg);color:var(--warn);font-weight:600}
+.tag.acc{background:var(--accent);color:var(--accent-ink);font-weight:600}
 .tag.sus{background:var(--bad-bg);color:var(--bad);font-weight:600}
 .src{display:inline-flex;align-items:center;gap:5px}
 .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
@@ -168,6 +169,7 @@ details.more{margin-top:8px;font-size:13px}details.more summary{cursor:pointer;c
       <button data-v="otomoto">🇵🇱 Polska</button>
       <button data-v="autoscout24">🇩🇪 Niemcy</button>
     </div>
+    <button class="chip" data-f="acc" title="Tylko auta z aktywnym tempomatem">Aktywny tempomat</button>
     <button class="chip" data-f="xdrive">xDrive</button>
     <button class="chip" data-f="touring">Touring</button>
     <button class="chip" data-f="sedan">Sedan</button>
@@ -181,7 +183,7 @@ details.more{margin-top:8px;font-size:13px}details.more summary{cursor:pointer;c
     <div class="spacer"></div>
     <label>Sortuj
       <select id="sort">
-        <option value="deal">największa okazja</option>
+        <option value="deal">najlepsze (okazja + ACC)</option>
         <option value="cost">najniższy koszt</option>
         <option value="km">najmniejszy przebieg</option>
         <option value="newest">najnowsze</option>
@@ -226,6 +228,9 @@ details.more{margin-top:8px;font-size:13px}details.more summary{cursor:pointer;c
     <input name="import_fixed_costs_pln" type="number" min="0" step="100">
     <label>Akcyza (ułamek, 0.031 = 3,1% dla silników do 2,0 l)</label>
     <input name="excise_rate" type="number" min="0" max="0.2" step="0.001">
+    <label>Premia za aktywny tempomat (punkty procentowe w rankingu)</label>
+    <input name="acc_bonus_pct" type="number" min="0" max="30" step="0.5">
+    <div class="hint">Np. 5 = auto z ACC wypada w rankingu tak, jakby było o 5% tańsze. 0 wyłącza premię.</div>
     <label>Codzienne pobieranie o godzinie</label>
     <input name="daily_run_hour" type="number" min="0" max="23">
     <label>Kraje na AutoScout24 (np. D lub D,A,NL)</label>
@@ -248,7 +253,7 @@ const SRC = {otomoto: {name: 'otomoto', flag: '🇵🇱', color: 'var(--series-1
              autoscout24: {name: 'AutoScout24', flag: '🇩🇪', color: 'var(--series-2)'}};
 
 let data = null;
-const F = {src: 'all', xdrive: false, touring: false, sedan: false, isNew: false, fav: false, showHidden: false, maxKm: '', maxCost: '', sort: 'deal'};
+const F = {src: 'all', acc: false, xdrive: false, touring: false, sedan: false, isNew: false, fav: false, showHidden: false, maxKm: '', maxCost: '', sort: 'deal'};
 let open = new Set();
 
 // W wersji chmurowej (GitHub Pages) nie ma serwera: dane z data.json, oznaczenia w przeglądarce.
@@ -308,6 +313,7 @@ function renderHeader() {
   const kpis = [
     ['Aktywne ogłoszenia', rows.length, `${pl.length} PL · ${de.length} DE`],
     ['Nowe dziś', rows.filter(r => r.is_new).length, 'od ostatniego pobrania'],
+    ['Z aktywnym tempomatem', rows.filter(r => r.acc).length, `premia +${c.acc_bonus_pct ?? 0} pkt w rankingu`],
     ['Mediana w Polsce', pl.length ? zl(median(pl.map(r => r.cost_pln))) : '—', 'otomoto, cena brutto'],
     ['Mediana z Niemiec', de.length ? zl(median(de.map(r => r.cost_pln))) : '—', 'z akcyzą i kosztami importu'],
     ['Najlepsza okazja', best ? (best.deal_pct > 0 ? '+' : '') + best.deal_pct.toFixed(1) + '%' : '—', best ? `${zl(best.cost_pln)} · ${nf.format(best.km)} km` : ''],
@@ -322,6 +328,7 @@ function renderHeader() {
 function filtered() {
   let rows = data.rows.filter(r => {
     if (F.src !== 'all' && r.source !== F.src) return false;
+    if (F.acc && !r.acc) return false;
     if (F.xdrive && !r.xdrive) return false;
     if (F.touring && !r.touring) return false;
     if (F.sedan && r.touring) return false;
@@ -332,8 +339,8 @@ function filtered() {
     if (F.maxCost && r.cost_pln > +F.maxCost) return false;
     return true;
   });
-  const by = {deal: (a, b) => b.deal_pct - a.deal_pct, cost: (a, b) => a.cost_pln - b.cost_pln,
-              km: (a, b) => a.km - b.km, newest: (a, b) => (b.first_seen || '').localeCompare(a.first_seen || '') || b.deal_pct - a.deal_pct};
+  const by = {deal: (a, b) => b.score - a.score, cost: (a, b) => a.cost_pln - b.cost_pln,
+              km: (a, b) => a.km - b.km, newest: (a, b) => (b.first_seen || '').localeCompare(a.first_seen || '') || b.score - a.score};
   return rows.sort(by[F.sort]);
 }
 
@@ -347,6 +354,7 @@ function card(r) {
     r.is_new && '<span class="tag new">NOWE</span>',
     drop > 0 && `<span class="tag drop">obniżka ${drop}%</span>`,
     r.deal_pct > 25 && '<span class="tag sus" title="Bardzo tanio – sprawdź stan, pochodzenie i czy cena jest pełna">sprawdź!</span>',
+    r.acc ? '<span class="tag acc" title="Aktywny tempomat – premia w rankingu">✓ Aktywny tempomat</span>' : '<span class="tag" title="Nie znaleziono aktywnego tempomatu w ogłoszeniu">bez ACC?</span>',
     r.xdrive && '<span class="tag">xDrive</span>', r.touring ? '<span class="tag">Touring</span>' : '<span class="tag">Sedan</span>',
     r.m_sport && '<span class="tag">M Sport</span>', `<span class="tag">${r.dealer ? 'dealer' : 'prywatny'}</span>`,
   ].filter(Boolean).join('');
@@ -362,6 +370,7 @@ function card(r) {
       <div class="cost">${zl(r.cost_pln)}</div>
       <div class="orig">cena w ogłoszeniu: ${orig}</div>
       <div class="deal ${cls}" title="Różnica względem wartości rynkowej">${r.deal_pct > 0 ? '+' : ''}${r.deal_pct.toFixed(1)}% vs rynek</div>
+      ${r.acc_bonus ? `<div class="orig" title="Premia za aktywny tempomat (Ustawienia)">+${r.acc_bonus} pkt za ACC</div>` : ''}
       <div class="acts">
         <button class="an-btn" data-act="analysis" title="Wyposażenie, historia, sprzedawca, cena, pytania do sprzedawcy">Pełna analiza</button>
         <button class="icon ${r.mark === 'fav' ? 'on' : ''}" data-act="fav" title="Ulubione">★</button>
@@ -531,6 +540,7 @@ function renderAnalysis(a) {
       <span>Koszt w Polsce</span><span><b>${zl(m.cost_pln)}</b></span>
       <span>Wartość rynkowa</span><span>${zl(m.expected_pln)}</span>
       <span>Różnica</span><span class="${m.deal_pct > 0 ? 'good' : 'bad'}"><b>${m.deal_pct > 0 ? '+' : ''}${m.deal_pct}%</b> (${m.deal_pct >= 0 ? 'taniej' : 'drożej'} o ${zl(Math.abs(m.expected_pln - m.cost_pln))})</span>
+      <span>Premia za ACC</span><span>${m.acc_bonus ? `+${m.acc_bonus} pkt w rankingu` : 'brak (nie znaleziono ACC)'}</span>
       <span>Tańszych ogłoszeń</span><span>${m.cheaper_count} z ${m.of - 1}</span></div></div>
     ${a.flags.length ? `<div class="an-box flags an-full"><h4>⚠ Sygnały ostrzegawcze</h4>${list(a.flags)}</div>` : ''}
     <div class="an-box an-full"><h4>Podsumowanie AI</h4><div id="aiBox">${aiHtml}</div></div>

@@ -27,6 +27,7 @@ EDITABLE = {  # pola, które można zmienić z poziomu aplikacji
     "import_fixed_costs_pln": lambda v: max(0, int(float(v))),
     "excise_rate": lambda v: min(0.2, max(0.0, float(v))),
     "daily_run_hour": lambda v: min(23, max(0, int(v))),
+    "acc_bonus_pct": lambda v: min(30.0, max(0.0, float(v))),
     "autoscout24_countries": lambda v: ",".join(
         c for c in str(v).upper().replace(" ", "").split(",") if c.isalpha() and len(c) <= 2) or "D",
 }
@@ -108,13 +109,14 @@ def api_listings():
     cfg = t.load_config()
     con = t.db()
     ensure_tables(con)
+    D.refresh_flags(con)
     rows, beta, rate = t.rank(con, cfg)
     marks = dict(con.execute("SELECT id, mark FROM marks").fetchall())
     day = t.today().isoformat()
     keep = ("id", "source", "country", "url", "title", "year", "reg_month", "km", "power_hp",
             "price", "currency", "dealer", "location", "thumb", "xdrive", "touring", "m_sport",
             "first_seen", "first_price", "cost_pln", "cost_note", "expected_pln", "deal_pct",
-            "vat_deductible")
+            "vat_deductible", "acc", "acc_bonus")
     out = []
     for i, r in enumerate(rows, 1):
         o = {k: r.get(k) for k in keep}
@@ -123,6 +125,7 @@ def api_listings():
         o["mark"] = marks.get(r["id"])
         o["cost_pln"], o["expected_pln"] = round(r["cost_pln"]), round(r["expected_pln"])
         o["deal_pct"] = round(r["deal_pct"], 1)
+        o["score"] = round(r["score"], 1)
         out.append(o)
     model = {}
     if beta:

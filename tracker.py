@@ -95,9 +95,16 @@ def digits(s):
     return int(d) if d else None
 
 
+# Aktywny tempomat (ACC / Stop&Go) - PL/DE/EN; używane w tytułach, wyposażeniu i opisach
+ACC_RE = (r"\bacc\b|aktywny tempomat|adaptacyjny tempomat|tempomat adaptacyjny|tempomat aktywny|"
+          r"kontrola odległości od poprzedzającego|abstandstempomat|aktive geschwindigkeits|"
+          r"stop\s?&\s?go|distance control|active cruise|driving assistant prof")
+
+
 def text_flags(text):
     t = (text or "").lower()
     return {
+        "acc": bool(re.search(ACC_RE, t)),
         "xdrive": "xdrive" in t or "x-drive" in t,
         "touring": "touring" in t or "kombi" in t,
         "m_sport": bool(re.search(r"m[\s\-]?sport|m[\s\-]?pakiet|m[\s\-]?paket|m pro", t)),
@@ -524,6 +531,14 @@ def rank(con, cfg):
     for r in rows:
         r["cost_pln"], r["cost_note"] = landed_cost_pln(r, cfg, rate)
     rows, beta = score(rows) if rows else (rows, None)
+    # Ranking = okazja cenowa + premia za preferowane wyposażenie (aktywny tempomat)
+    bonus = cfg.get("acc_bonus_pct", 5)
+    for r in rows:
+        if "acc" not in r:  # starsze wpisy w bazie - wykryj z tytułu
+            r["acc"] = bool(re.search(ACC_RE, (r.get("title") or "").lower()))
+        r["acc_bonus"] = bonus if r.get("acc") else 0
+        r["score"] = r["deal_pct"] + r["acc_bonus"]
+    rows.sort(key=lambda r: r["score"], reverse=True)
     return rows, beta, rate
 
 

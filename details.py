@@ -171,11 +171,13 @@ def save_details(con, lid, d):
 
 
 def apply_flags(con, lid, d):
-    """Szczegóły są dokładniejsze niż tytuł: poprawiamy xDrive/Touring/moc w ogłoszeniu."""
+    """Szczegóły są dokładniejsze niż tytuł: poprawiamy xDrive/Touring/ACC/moc w ogłoszeniu."""
     row = con.execute("SELECT data FROM listings WHERE id=?", (lid,)).fetchone()
     if not row:
         return
     l = json.loads(row[0])
+    before = dict(l)
+    l["acc"] = bool(l.get("acc")) or bool(re.search(t.ACC_RE, _equipment_text(l, d), re.I))
     body = (d.get("body") or "").lower()
     if body:
         l["touring"] = any(w in body for w in ("kombi", "touring", "estate"))
@@ -184,7 +186,17 @@ def apply_flags(con, lid, d):
         l["xdrive"] = "4x4" in drive or "xdrive" in drive or "4wd" in drive
     if d.get("power_hp"):
         l["power_hp"] = d["power_hp"]
-    con.execute("UPDATE listings SET data=? WHERE id=?", (json.dumps(l, ensure_ascii=False), lid))
+    if l != before:
+        con.execute("UPDATE listings SET data=? WHERE id=?", (json.dumps(l, ensure_ascii=False), lid))
+
+
+def refresh_flags(con):
+    """Codzienne pobieranie nadpisuje dane z listy wyników - nakładamy ponownie flagi ze szczegółów."""
+    ensure_tables(con)
+    for lid, data in con.execute(
+            "SELECT d.id, d.data FROM details d JOIN listings l ON l.id=d.id WHERE l.active=1").fetchall():
+        apply_flags(con, lid, json.loads(data))
+    con.commit()
 
 
 def fetch_missing(con, cfg, limit=None, progress=None):
@@ -213,7 +225,7 @@ HIGHLIGHTS = [  # (nazwa, wzorzec) - szukane w wyposażeniu, opisie i tytule (PL
     ("Head-Up Display", r"head[\s-]?up|\bhud\b"),
     ("Harman Kardon", r"harman"),
     ("Kamery 360° / Surround View", r"kamera panoramiczna 360|360\s?°|kamer\w* 360|360[\s-]?(grad|kamera|camera)|surround view|top view|3d view|parking assistant (plus|prof)"),
-    ("Aktywny tempomat (ACC)", r"\bacc\b|aktywny tempomat|adaptacyjny tempomat|tempomat adaptacyjny|tempomat aktywny|kontrola odległości od poprzedzającego|abstandstempomat|aktive geschwindigkeits|stop\s?&\s?go|distance control|driving assistant prof"),
+    ("Aktywny tempomat (ACC)", t.ACC_RE),
     ("Driving Assistant Professional", r"driving assistant prof|fahrassistent prof|asystent jazdy w korku|stau(assistent|- und)"),
     ("Dach panoramiczny / szyberdach", r"panorama(dach|-glasdach)|glasdach|schiebedach|szyberdach|dach panoramiczny|otwierany dach|sunroof"),
     ("Reflektory adaptacyjne LED / laser", r"laserlicht|reflektory laserowe|adaptive?r? led|adaptive scheinwerfer|oświetlenie adaptacyjne|reflektory adaptacyjne|blendfreie?s? fernlicht"),
@@ -313,12 +325,22 @@ def analyze(row, det, all_rows, cfg, rate):
     cond = max(0.0, min(10.0, cond))
 
     # --- wyposażenie ---
-    eq_score = _score(len(found), 0, 9)
+    has_acc = "Aktywny tempomat (ACC)" in found
+    eq_score = _score(len(found) + (2 if has_acc else 0), 0, 11)  # ACC liczy się podwójnie
+    bonus = cfg.get("acc_bonus_pct", 5)
+    if has_acc:
+        pros.insert(0, "Ma aktywny tempomat (ACC) – Twoje kluczowe wyposażenie (premia +%s pkt w rankingu)." % bonus)
+    else:
+        cons.insert(0, "Brak potwierdzonego aktywnego tempomatu (ACC) – bez premii w rankingu.")
+        questions.insert(0, "Czy auto ma aktywny tempomat (kod opcji 5DF lub pakiet Driving Assistant Professional 5AU)? "
+                            "Jeśli nie: podaj VIN – sprawdzę u dealera BMW, czy da się go dokupić w BMW Upgrades Store "
+                            "(wymaga radaru z przodu) i za ile.")
     if found:
         pros.append("Najważniejsze wyposażenie: %s." % ", ".join(found[:8]) + (" i więcej." if len(found) > 8 else ""))
-    if missing:
-        cons.append("Nie znaleziono w opisie: %s." % ", ".join(missing))
-        questions.append("Czy auto ma: %s? (nie wynika to z ogłoszenia)" % ", ".join(missing))
+    other_missing = [m for m in missing if m != "Aktywny tempomat (ACC)"]
+    if other_missing:
+        cons.append("Nie znaleziono w opisie: %s." % ", ".join(other_missing))
+        questions.append("Czy auto ma: %s? (nie wynika to z ogłoszenia)" % ", ".join(other_missing))
 
     # --- sprzedawca ---
     s = det.get("seller") or {}
@@ -370,7 +392,7 @@ def analyze(row, det, all_rows, cfg, rate):
         "scores": {"Cena": round(price_score, 1), "Stan i historia": round(cond, 1),
                    "Wyposażenie": round(eq_score, 1), "Sprzedawca": round(seller_score, 1)},
         "market": {"cost_pln": round(row["cost_pln"]), "expected_pln": round(row["expected_pln"]),
-                   "deal_pct": round(deal, 1), "rank": row.get("rank"), "of": len(all_rows),
+                   "deal_pct": round(deal, 1), "acc_bonus": row.get("acc_bonus", 0), "rank": row.get("rank"), "of": len(all_rows),
                    "cheaper_count": cheaper},
         "pros": pros, "cons": cons, "flags": flags, "questions": questions,
         "highlights": found, "missing": missing, "equipment_count": n_items,
@@ -464,6 +486,7 @@ def make_ai(con, analysis, row, cfg):
 # ------------------------------------------------------- całość dla UI -----
 
 def ranked(con, cfg):
+    refresh_flags(con)
     rows, _, rate = t.rank(con, cfg)
     for i, r in enumerate(rows, 1):
         r["rank"] = i
