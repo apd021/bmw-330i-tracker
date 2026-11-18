@@ -62,6 +62,7 @@ def main():
     site_cfg = {
         "actions": "https://github.com/%s/actions/workflows/daily.yml" % repo,
         "config": "https://github.com/%s/edit/main/config.json" % repo,
+        "repo": repo,
     }
     os.makedirs(OUT, exist_ok=True)
     with open(os.path.join(OUT, "data.json"), "w", encoding="utf-8") as f:
@@ -72,6 +73,10 @@ def main():
     page = page.replace("<script>", inject, 1)
     with open(os.path.join(OUT, "index.html"), "w", encoding="utf-8") as f:
         f.write(page)
+    # PWA: manifest, service worker i ikony (instalacja na telefonie/komputerze, praca offline)
+    for name in ("manifest.webmanifest", "sw.js"):
+        shutil.copy(os.path.join(t.BASE, "static", name), os.path.join(OUT, name))
+    shutil.copytree(os.path.join(t.BASE, "static", "icons"), os.path.join(OUT, "icons"), dirs_exist_ok=True)
     open(os.path.join(OUT, ".nojekyll"), "w").close()
     t.log("Strona zbudowana: %s (%d ogłoszeń)" % (OUT, len(data["rows"])))
 

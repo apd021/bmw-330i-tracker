@@ -9,6 +9,18 @@ opłaty importowe; auta do 6 mies./6000 km jako „nowy środek transportu” z 
 a potem dopasowuje model ceny rynkowej (przebieg, wiek, xDrive, Touring, M Sport) do wszystkich
 ogłoszeń. **Ranking = o ile % auto jest tańsze od swojej wartości rynkowej.**
 
+## Na wszystkich urządzeniach
+Strona: **https://apd021.github.io/bmw-330i-tracker/** – działa na telefonie, tablecie i komputerze, a dane odświeżają się w chmurze.
+
+**Zainstaluj jako aplikację** (ikona na ekranie, pełny ekran, ostatnie dane także offline):
+- **iPhone / iPad (Safari):** Udostępnij → *Do ekranu początkowego*.
+- **Android (Chrome):** menu ⋮ → *Zainstaluj aplikację* (lub *Dodaj do ekranu głównego*).
+- **Mac / Windows (Chrome, Edge):** ikona instalacji w pasku adresu; **Safari na Macu:** Plik → *Dodaj do Docka*.
+
+**Ulubione i ukryte na każdym urządzeniu:** zapisywane w pliku `marks.json` w repozytorium. Każde urządzenie je widzi;
+żeby zapisywać zmiany z danego urządzenia, wklej raz w *Ustawieniach* token GitHub (fine-grained, tylko to repozytorium,
+uprawnienie *Contents: Read and write*). Token zostaje wyłącznie w tej przeglądarce.
+
 ## Aplikacja webowa
 ```bash
 python3 webapp.py             # otwórz http://localhost:8330

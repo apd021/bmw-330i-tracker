@@ -2,7 +2,15 @@
 <html lang="pl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1c69d4">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="BMW 330i">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <title>BMW 330i · ranking okazji</title>
 <style>
 :root{
@@ -31,7 +39,7 @@ button,input,select{font:inherit;color:inherit}
 a{color:inherit}
 .wrap{max-width:1400px;margin:0 auto;padding:20px 24px 48px}
 header{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:18px}
-.logo{width:40px;height:40px;border-radius:50%;background:conic-gradient(var(--accent) 0 25%,#fff 0 50%,var(--accent) 0 75%,#fff 0);border:3px solid #111;flex:none}
+.logo{width:42px;height:42px;border-radius:10px;flex:none}
 h1{font-size:22px;margin:0;letter-spacing:-.01em}
 .sub{color:var(--text-secondary);font-size:13px}
 .muted{color:var(--text-muted)}
@@ -50,6 +58,7 @@ h1{font-size:22px;margin:0;letter-spacing:-.01em}
 .kpi .v{font-size:24px;font-weight:650;margin-top:2px;font-variant-numeric:tabular-nums}
 .kpi .s{color:var(--text-muted);font-size:12px}
 .filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:var(--surface-1);border:1px solid var(--border);border-radius:14px;padding:10px 12px;margin-bottom:16px;box-shadow:var(--shadow)}
+.chips-row{display:contents}
 .seg{display:inline-flex;background:var(--surface-2);border-radius:9px;padding:3px}
 .seg button{border:0;background:none;padding:5px 12px;border-radius:7px;cursor:pointer;color:var(--text-secondary)}
 .seg button.on{background:var(--surface-1);color:var(--text-primary);box-shadow:var(--shadow);font-weight:600}
@@ -119,8 +128,9 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
 .an-score .big{font-size:40px;font-weight:750;line-height:1;font-variant-numeric:tabular-nums}
 .an-score .big small{font-size:16px;color:var(--text-muted);font-weight:500}
 .verdict{display:inline-block;margin-top:6px;padding:4px 10px;border-radius:8px;font-weight:650;font-size:13px}
-.an-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
-@media (max-width:760px){.an-grid{grid-template-columns:1fr}}
+.an-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;margin-top:16px}
+.an-grid>*{min-width:0;overflow-wrap:anywhere}
+@media (max-width:760px){.an-grid{grid-template-columns:minmax(0,1fr)}}
 .an-box{background:var(--surface-2);border-radius:12px;padding:12px 14px}
 .an-box h4{margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-secondary)}
 .an-box ul{margin:0;padding-left:18px}.an-box li{margin:3px 0}
@@ -128,8 +138,8 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
 .meter{display:grid;grid-template-columns:120px 1fr 34px;gap:8px;align-items:center;margin:6px 0;font-size:13px}
 .meter .track{height:8px;border-radius:4px;background:var(--border);overflow:hidden}
 .meter .fill{height:100%;border-radius:4px;background:var(--accent)}
-.meter b{text-align:right;font-variant-numeric:tabular-nums}
-.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:13px}
+.meter b{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;overflow-wrap:normal}
+.kv{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;font-size:13px}
 .kv span:nth-child(odd){color:var(--text-secondary)}
 .kv .good{color:var(--good)}.kv .bad{color:var(--bad)}
 .flags{background:var(--bad-bg);color:var(--bad)}
@@ -144,12 +154,52 @@ details.more{margin-top:8px;font-size:13px}details.more summary{cursor:pointer;c
 .ai{line-height:1.55}.ai h3{font-size:15px;margin:14px 0 4px}.ai h3:first-child{margin-top:0}.ai ul{padding-left:20px;margin:4px 0}
 .an-loading{padding:60px;text-align:center;color:var(--text-muted)}
 .checklist li{list-style:none;margin-left:-18px}.checklist li::before{content:"☐ ";color:var(--accent)}
+
+@media (max-width:600px){
+  .wrap{padding:calc(10px + env(safe-area-inset-top)) 12px 40px}
+  header{gap:10px;margin-bottom:12px}
+  header .logo{width:34px;height:34px}
+  h1{font-size:17px}
+  header .sub{font-size:12px}
+  header .spacer{display:none}
+  header .btn{padding:7px 11px;font-size:13px}
+  #status{order:10;width:100%}
+  .kpis{grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+  .kpi{padding:9px 11px;border-radius:12px}
+  .kpi .v{font-size:18px}
+  .kpi .s{font-size:11px}
+  .filters{padding:8px;gap:6px}
+  .filters .chips-row{display:flex;gap:6px;overflow-x:auto;flex-wrap:nowrap;width:100%;padding-bottom:2px;-webkit-overflow-scrolling:touch}
+  .filters .chip{white-space:nowrap;flex:none}
+  .filters label{font-size:12px}
+  .filters .spacer{display:none}
+  .card{grid-template-columns:28px 104px minmax(0,1fr);gap:8px 10px;padding:10px}
+  .card .rank{font-size:17px}
+  .card .thumb{width:104px;height:72px;grid-column:auto}
+  .card .main{grid-column:auto}
+  .card .title{white-space:normal;font-size:14px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .card .meta{font-size:12px}
+  .card .right{grid-column:1/-1;display:grid;grid-template-columns:1fr auto;align-items:center;text-align:left;min-width:0;gap:2px 10px}
+  .card .right .cost{font-size:17px}
+  .card .right .deal{margin-top:0;justify-self:end;grid-row:1/3;grid-column:2}
+  .card .right .acts{grid-column:1/-1;justify-content:flex-start}
+  .card .an-btn{flex:1;padding:8px 10px}
+  #analysis .an-wrap{padding:16px 14px}
+  .an-head{flex-wrap:wrap}.an-score{order:-1;min-width:0;text-align:left}
+  .meter{grid-template-columns:96px 1fr 38px}
+  dialog{width:96vw;padding:16px}
+  #analysis{width:100vw;max-width:100vw;max-height:100dvh;height:100dvh;margin:0;border-radius:0;padding:0}
+  #analysis .an-wrap{max-height:100dvh;padding:calc(12px + env(safe-area-inset-top)) 12px 24px}
+  .an-head{position:relative;padding-right:40px}
+  .an-close{position:absolute;top:0;right:0}
+  .an-box{padding:10px 12px}
+}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <div class="logo" aria-hidden="true"></div>
+    <img class="logo" src="icons/icon-192.png" alt="" aria-hidden="true">
     <div>
       <h1>BMW 330i · ranking okazji</h1>
       <div class="sub" id="subtitle">Ładowanie…</div>
@@ -169,6 +219,7 @@ details.more{margin-top:8px;font-size:13px}details.more summary{cursor:pointer;c
       <button data-v="otomoto">🇵🇱 Polska</button>
       <button data-v="autoscout24">🇩🇪 Niemcy</button>
     </div>
+    <div class="chips-row">
     <button class="chip" data-f="acc" title="Tylko auta z aktywnym tempomatem">Aktywny tempomat</button>
     <button class="chip" data-f="xdrive">xDrive</button>
     <button class="chip" data-f="touring">Touring</button>
@@ -176,6 +227,7 @@ details.more{margin-top:8px;font-size:13px}details.more summary{cursor:pointer;c
     <button class="chip" data-f="isNew">Tylko nowe</button>
     <button class="chip" data-f="fav">★ Ulubione</button>
     <button class="chip" data-f="showHidden">Pokaż ukryte</button>
+    </div>
     <label>Przebieg do
       <select id="maxKm"><option value="">dowolny</option><option>10000</option><option>20000</option><option>30000</option><option>50000</option></select>
     </label>
@@ -215,6 +267,32 @@ details.more{margin-top:8px;font-size:13px}details.more summary{cursor:pointer;c
 <div class="tip" id="tip"></div>
 
 <dialog id="analysis" aria-label="Pełna analiza ogłoszenia"><div class="an-wrap" id="anBody"></div></dialog>
+
+<dialog id="cloudSettings">
+  <form method="dialog">
+    <h3 style="margin:0">Ustawienia</h3>
+    <h4 style="margin:16px 0 4px">Synchronizacja między urządzeniami</h4>
+    <div class="sub" id="syncState"></div>
+    <div class="hint" style="line-height:1.5">Ulubione ★ i ukryte ✕ są zapisywane w pliku <code>marks.json</code> w Twoim repozytorium GitHub,
+      więc widać je na każdym urządzeniu. Aby <b>zapisywać</b> z tego urządzenia, wklej tutaj swój token GitHub (raz na urządzenie):
+      <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">utwórz token</a> →
+      Repository access: <i>Only select repositories</i> → <b>bmw-330i-tracker</b> → Permissions → <b>Contents: Read and write</b>.
+      Token zostaje tylko w tej przeglądarce. Lista ulubionych jest publiczna (jak całe repozytorium).</div>
+    <label>Token GitHub</label>
+    <input id="tokenInput" type="password" autocomplete="off" placeholder="github_pat_…">
+    <div class="row" style="justify-content:flex-start">
+      <button class="btn primary" type="button" id="tokenSave">Zapisz i połącz</button>
+      <button class="btn" type="button" id="tokenRemove">Usuń token z tego urządzenia</button>
+    </div>
+    <h4 style="margin:18px 0 4px">Ustawienia rankingu</h4>
+    <div class="hint">Premia za ACC, osoba prywatna/firma, koszty importu i godzina pobierania są w pliku config.json.
+      Po zapisaniu zmian strona przebuduje się sama w ok. 2 minuty.</div>
+    <div class="row" style="justify-content:flex-start">
+      <a class="btn" id="configLink" target="_blank" rel="noopener">Edytuj config.json na GitHubie ↗</a>
+    </div>
+    <div class="row"><button class="btn" value="close">Zamknij</button></div>
+  </form>
+</dialog>
 
 <dialog id="settings">
   <form method="dialog" id="settingsForm">
@@ -260,6 +338,57 @@ let open = new Set();
 const STATIC = window.STATIC_SITE || null;
 let staticData = null;
 const localMarks = () => JSON.parse(localStorage.getItem('bmw330i-marks') || '{}');
+const saveLocalMarks = m => localStorage.setItem('bmw330i-marks', JSON.stringify(m));
+
+// Synchronizacja ulubionych/ukrytych między urządzeniami: plik marks.json w repozytorium GitHub.
+// Odczyt działa bez logowania (repozytorium publiczne); zapis wymaga tokenu GitHub zapisanego w tej przeglądarce.
+const TOKEN_KEY = 'bmw330i-gh-token';
+const b64 = str => btoa(unescape(encodeURIComponent(str)));
+const unb64 = str => decodeURIComponent(escape(atob(str.replace(/\n/g, ''))));
+const sync = {
+  get token() { return localStorage.getItem(TOKEN_KEY); },
+  sha: null, status: 'lokalnie',
+  url() { return `https://api.github.com/repos/${STATIC.repo}/contents/marks.json`; },
+  headers() {
+    const h = {Accept: 'application/vnd.github+json'};
+    if (this.token) h.Authorization = 'Bearer ' + this.token;
+    return h;
+  },
+  async pull() {
+    const r = await fetch(this.url() + '?ref=main&t=' + Date.now(), {headers: this.headers(), cache: 'no-store'});
+    if (r.status === 404) { this.sha = null; return {}; }
+    if (!r.ok) throw new Error('GitHub ' + r.status);
+    const j = await r.json(); this.sha = j.sha;
+    return JSON.parse(unb64(j.content) || '{}');
+  },
+  async push(marks) {
+    const body = {message: 'Ulubione/ukryte (synchronizacja z aplikacji)', branch: 'main',
+                  content: b64(JSON.stringify(marks, null, 1))};
+    if (this.sha) body.sha = this.sha;
+    const r = await fetch(this.url(), {method: 'PUT', headers: {...this.headers(), 'Content-Type': 'application/json'}, body: JSON.stringify(body)});
+    if (!r.ok) { const e = new Error('GitHub ' + r.status); e.status = r.status; throw e; }
+    this.sha = (await r.json()).content.sha;
+  },
+  // zmiana jednego oznaczenia: pobierz najnowszą wersję, nanieś zmianę, zapisz (z jedną ponowną próbą przy konflikcie)
+  async update(id, mark) {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const m = await this.pull();
+      if (mark) m[id] = mark; else delete m[id];
+      try { await this.push(m); saveLocalMarks(m); return m; }
+      catch (e) { if (e.status !== 409 && e.status !== 422) throw e; }
+    }
+    throw new Error('konflikt zapisu – spróbuj ponownie');
+  },
+};
+
+async function loadMarks() {
+  if (!STATIC || !STATIC.repo) return localMarks();
+  try {
+    const remote = await sync.pull();
+    if (sync.token) { saveLocalMarks(remote); sync.status = 'zsynchronizowane'; return remote; }
+    sync.status = 'tylko odczyt'; return {...remote, ...localMarks()};
+  } catch (e) { sync.status = 'offline'; return localMarks(); }
+}
 
 async function api(path, body) {
   if (STATIC) return staticApi(path, body);
@@ -273,7 +402,7 @@ async function staticApi(path, body) {
     const r = await fetch('data.json', {cache: 'no-cache'});
     if (!r.ok) throw new Error('brak data.json');
     staticData = await r.json();
-    const m = localMarks();
+    const m = await loadMarks();
     staticData.rows.forEach(x => x.mark = m[x.id] || null);
     return staticData;
   }
@@ -284,7 +413,11 @@ async function staticApi(path, body) {
   if (path === '/api/mark') {
     const m = localMarks();
     if (body.mark) m[body.id] = body.mark; else delete m[body.id];
-    localStorage.setItem('bmw330i-marks', JSON.stringify(m));
+    saveLocalMarks(m);
+    if (STATIC.repo && sync.token) {
+      try { await sync.update(body.id, body.mark); sync.status = 'zsynchronizowane'; }
+      catch (e) { sync.status = 'błąd synchronizacji'; $('#status').textContent = '⚠ Nie zapisano na GitHubie: ' + e.message; }
+    }
     return {ok: true};
   }
   if (path.startsWith('/api/analysis')) {
@@ -599,8 +732,30 @@ $('#runBtn').addEventListener('click', async () => {
 });
 
 // --- ustawienia ---
+function renderSyncState() {
+  $('#syncState').innerHTML = sync.token
+    ? `Stan: <b>${esc(sync.status)}</b> – zmiany z tego urządzenia są zapisywane na GitHubie.`
+    : `Stan: <b>${esc(sync.status)}</b> – widzisz ulubione ze wszystkich urządzeń, ale zmiany z tego urządzenia zostają lokalnie.`;
+}
+$('#tokenSave')?.addEventListener('click', async () => {
+  const tok = $('#tokenInput').value.trim(); if (!tok) return;
+  $('#syncState').textContent = 'Sprawdzam token…';
+  try {
+    const r = await fetch(`https://api.github.com/repos/${STATIC.repo}`, {headers: {Accept: 'application/vnd.github+json', Authorization: 'Bearer ' + tok}});
+    const j = await r.json();
+    if (!r.ok || !(j.permissions && j.permissions.push)) throw new Error(r.ok ? 'token nie ma prawa zapisu do repozytorium' : 'nieprawidłowy token');
+    localStorage.setItem(TOKEN_KEY, tok); $('#tokenInput').value = '';
+    // wyślij lokalne oznaczenia z tego urządzenia, łącząc je z tymi z GitHuba
+    const merged = {...(await sync.pull()), ...localMarks()};
+    await sync.push(merged); saveLocalMarks(merged); sync.status = 'zsynchronizowane';
+    await load();
+  } catch (e) { sync.status = 'błąd: ' + e.message; }
+  renderSyncState();
+});
+$('#tokenRemove')?.addEventListener('click', () => { localStorage.removeItem(TOKEN_KEY); sync.status = 'tylko odczyt'; renderSyncState(); });
+
 $('#settingsBtn').addEventListener('click', () => {
-  if (STATIC) { window.open(STATIC.config, '_blank', 'noopener'); return; }
+  if (STATIC) { $('#configLink').href = STATIC.config; renderSyncState(); $('#cloudSettings').showModal(); return; }
   const f = $('#settingsForm');
   for (const [k, v] of Object.entries(data.config)) if (f.elements[k]) f.elements[k].value = v;
   $('#settings').showModal();
@@ -614,7 +769,8 @@ $('#settings').addEventListener('close', async () => {
 
 if (STATIC) {
   $('#runBtn').title = 'Otwiera GitHub Actions – kliknij „Run workflow”, by pobrać dane teraz';
-  $('#settingsBtn').title = 'Ustawienia są w pliku config.json w repozytorium (edycja przebuduje stronę)';
+  $('#settingsBtn').title = 'Synchronizacja między urządzeniami i ustawienia rankingu';
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 }
 load().then(() => api('/api/status')).then(s => { if (s.running) poll(); }).catch(e => { $('#subtitle').textContent = 'Błąd: ' + e.message; });
 </script>

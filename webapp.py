@@ -228,6 +228,12 @@ class Handler(BaseHTTPRequestHandler):
         try:
             if u.path in ("/", "/index.html"):
                 return self.send_file(os.path.join(STATIC, "index.html"), "text/html; charset=utf-8")
+            static_types = {".webmanifest": "application/manifest+json", ".js": "text/javascript", ".png": "image/png"}
+            ext = os.path.splitext(u.path)[1]
+            if ext in static_types:
+                full = os.path.realpath(os.path.join(STATIC, u.path.lstrip("/")))
+                if full.startswith(os.path.realpath(STATIC) + os.sep) and os.path.isfile(full):
+                    return self.send_file(full, static_types[ext])
             if u.path == "/api/listings":
                 return self.send_json(api_listings())
             if u.path == "/api/history":
